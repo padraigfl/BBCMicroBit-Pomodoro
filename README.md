@@ -34,10 +34,9 @@ The matrix print function was really badly broken with types (dynamically compos
 
 I'll probably never go beyond getting the times right, but some scope for expansion here
 
+- [ ] Switch to Python for greater control (saving data on device)
 - [ ] Get working with VS code https://makecode.com/cli
-- [ ] Improve workarounds for iffy typescript definitions
-- [ ] Verify times work
 - [ ] Testing
 - [ ] Options?
-- [ ] Data tracking?
+- [ ] Data tracking
 - [ ] Threading to allow more user control? Better visual feedback?

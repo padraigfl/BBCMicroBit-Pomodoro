@@ -1,4 +1,4 @@
-// numbers are not accurate
+const MESSAGE_SPEED = 80;
 const MINUTE = 60000;
 const initialSettings = {
   time: 20,
@@ -7,6 +7,7 @@ const initialSettings = {
   cycleLength: 4,
   isActive: false
 };
+
 const initialCount = {
   cycle: 0,
   time: 0, // MS
@@ -22,7 +23,7 @@ const getInfoString = () =>
 
 const nextStage = () => {
   basic.showNumber(count.cycle + 1);
-  if (!count.isBreak) {
+  if (count.isBreak) {
     count.cycle = (count.cycle + 1) % settings.cycleLength;
   }
   count.time = 0;
@@ -36,6 +37,7 @@ const updateState = () => {
     nextStage();
   }
 };
+
 const remainingMin = (timeCount: number) => {
   let totalTime = settings.time;
   if (!count.cycle && count.isBreak) {
@@ -49,20 +51,22 @@ const remainingMin = (timeCount: number) => {
 
 const flashTime = (onTime = 700, flashCount = 2) => {
   // @todo
-  const TIMER = 60000;
   const cycleNotice = 1000;
-  const countNotice = TIMER - cycleNotice;
   const remaining = remainingMin(count.time);
   if (count.isBreak) {
-    showInvertLeds[remaining + 1]();
-    basic.pause(18000);
-    basic.showNumber(count.cycle + 1, 2000);
-    basic.pause(18000);
-    basic.showNumber(count.cycle + 1, 2000);
-    basic.pause(18000);
-    basic.showNumber(count.cycle + 1, 2000);
+    const loopSize = 3;
+    const breakDisplay = MINUTE / (loopSize * 10);
+    const regDisplay = MINUTE / loopSize - breakDisplay;
+
+    for (let i = 0; i < loopSize; i++) {
+      showInvertLeds[remaining + 1]();
+      basic.pause(regDisplay);
+      basic.showNumber(count.cycle + 1, breakDisplay);
+    }
     return;
   }
+
+  const countNotice = MINUTE - cycleNotice;
 
   basic.showNumber(count.cycle + 1);
   basic.pause(cycleNotice);
@@ -70,35 +74,51 @@ const flashTime = (onTime = 700, flashCount = 2) => {
   showSetLeds[remaining + 1]();
   basic.pause(countNotice);
 };
-const timer = () => {
+
+const update = () => {
   updateState();
   flashTime();
-  if (settings.isActive) {
-    timer();
-  }
 };
+
 const startTimer = () => {
   if (!settings.isActive) {
     settings.isActive = true;
-    timer();
-    basic.showString("Start");
+    basic.showLeds(`
+            . # . . .
+            . # # . .
+            . # # # .
+            . # # . .
+            . # . . .
+        `);
+    while (settings.isActive) {
+      update();
+    }
     return;
   }
   basic.showString(getInfoString());
 };
+
 const stopTimer = () => {
   settings.isActive = false;
   count.time = 0;
   count.isBreak = false;
-  basic.showString("Stop");
+  basic.showLeds(`
+        . . . . .
+        . # # # .
+        . # # # .
+        . # # # .
+        . . . . .
+    `);
+  return;
 };
+
 const reset = () => {
   settings = initialSettings;
   count = initialCount;
-  basic.showString("Reset");
+  basic.showString("Reset", MESSAGE_SPEED);
 };
 
-basic.showString("Pomo");
+basic.showString("Pomo", MESSAGE_SPEED);
 
 basic.forever(function() {
   input.onButtonPressed(Button.A, startTimer);
